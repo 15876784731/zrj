@@ -1,0 +1,204 @@
+<template>
+	<view class="box" :style="{width:screenWidth+'px',height:screenHeight+'px'}">
+		<uni-nav-bar 
+		ref="navHead"
+		:style="{marginTop:statusBarHeight+'px',width:screenWidth+'px'}" 
+		left-icon="back" 
+		left-text="返回"
+		right-text=""  
+		color="#fff"
+		background-color="#333333"
+		right-icon="trash" 
+		title="预览" 
+		@clickLeft="back"></uni-nav-bar> 
+		<view class="box1"  :style="{width:screenWidth+'px',height:imageboxHeight+'px'}">
+			<image class="image" src="/static/logo.png" mode="" :style="{width:screenWidth+'px',height:imageHeight+'px'}"></image>
+			<!-- <view class="mask" :style="{width:screenWidth+'px',height:imageboxHeight+'px'}"></view> -->
+		</view>
+		<!-- <view :style="{width:screenWidth+'px'}"> -->
+		<view >
+			<nav ref="navBottom" class="navBuotom" :style="{width:screenWidth+'px'}">
+				<view class="nav-item" >
+					<uni-icons type="map-pin"  style="font-size: 25rpx; color: #fff;"></uni-icons>
+					<text style="font-size: 25rpx; color: #fff; padding: 1px;" >部位</text>
+				</view>
+				<view class="nav-item">
+					<uni-icons type="compose"  style="font-size: 25rpx; color: #fff;"></uni-icons>
+					<text  style="font-size: 25rpx; color: #fff; padding: 1px;">内容</text>
+				</view>
+				<view class="nav-item"  >
+					<uni-icons type="map" style="font-size: 25rpx; color: #fff;"></uni-icons>
+					<text style="font-size: 25rpx; color: #fff;padding: 1px;">项目工序</text>
+				</view>
+				<view class="nav-item">
+					<uni-icons type="help" style="font-size: 25rpx; color: #fff;"></uni-icons>
+					<text style="font-size: 25rpx; color: #fff;padding: 1px;">问题</text>
+				</view>
+			</nav>
+		</view>
+	</view> 
+</template>
+
+<script>
+	import uniNavBar from '@/components/uni-app/uni-nav-bar/uni-nav-bar.vue';
+	// import uniBadge from "@/components/uni-app/uni-badge/uni-badge.vue";
+	export default {
+		comments:{
+			uniNavBar,
+			// uniBadge
+		},
+		data() {
+			return {
+				photoUrl: '',
+				screenHeight: '',
+				screenWidth: '',
+				statusBarHeight: '',
+				imageboxHeight: '',
+				imageHeight: '',
+				subNvue: {},
+				picList: [],
+			}
+		},
+		onLoad (option) {
+			
+			this.photoUrl = option.photoUrl;
+			// console.log(this.photoUrl);
+		},
+		mounted() {
+			const that = this;
+			uni.getSystemInfo({
+				success: function (res) {
+					console.log(res)
+					that.statusBarHeight = res.statusBarHeight;
+					const navigationBarHeight = res.navigationBarHeight;
+					that.screenWidth = res.screenWidth ;
+					that.screenHeight = res.screenHeight;
+					that.imageboxHeight = that.screenHeight - that.statusBarHeight- 88;
+					// let navBotHeight = that.$refs.navBottom.style.height;
+					// let navHeadHeight = that.$refs.navHead.$el;
+					// console.log(navHeadHeight);
+					// that.imageHeight = that.screenHeight - navBotHeight - navigationBarHeight - navHeadHeight;
+					console.log(that.screenHeight);
+					console.log(that.screenWidth); 
+					uni.getImageInfo({
+						src: '/static/logo.png',
+						success: function (res) {
+							console.log(1111111);
+							console.log(res);
+							const ratio = res.height/res.width;
+							that.imageHeight = that.screenWidth * ratio;
+						}
+					});
+				}
+			}) ;
+			
+			uni.$on('openPicShow',(subNvue,list)=>{
+				this.subNvue = subNvue;
+				this.photoUrl = list[0];
+				console.log(this.photoUrl);
+			})
+		},
+		methods: {
+			back () {
+				console.log('back');
+				this.subNvue.hide('fade-out', 300)				
+			},
+			//保存图片到相册，方便核查
+			savePhoto(path){
+				// console.log(path)
+				// if(this.imagesrc[0].id==''){
+				// 	let number = this.imagesrc.length - 1
+				// 	this.imagesrc[number].id = number + 1;
+				// 	this.imagesrc[number].lj = path;
+				// }else{
+				// 	let number = this.imagesrc.length
+				// 	this.imagesrc[number].id = number + 1;
+				// 	this.imagesrc[number].lj = path;
+				// }
+				let number = this.imagesrc.length
+				// this.imagesrc.push(path)
+				this.$set(this.imagesrc,number,path)
+				//保存到相册
+				uni.saveImageToPhotosAlbum({
+					filePath: path,
+					success: () => {
+						uni.showToast({
+							title: '已保存至相册',
+							duration: 2000
+						});
+					}
+				});
+			},
+			//设置图片
+			setImage(e) {
+				console.log(e);
+				//显示在页面
+				//this.imagesrc = e.path;
+				if(e.dotype =='idphoto'){
+					_this.zjzClipper(e.path);
+				}else if(e.dotype =='watermark'){
+					_this.watermark(e.path);
+				}else{
+					_this.savePhoto(e.path);
+				}
+			},
+			
+		}
+	}
+</script>
+
+<style>
+	.box {
+		/* position: fixed;
+		top: 0px;
+		bottom: 0px;
+		left: 0px;
+		right: 0px; */
+		overflow: hidden;
+		z-index: 999;
+		background-color: #fff;
+		transition: opacity 0.3s;
+		/* background-color: #000000; */
+		/* border: 1px solid blue; */
+	}
+	.box1 {
+		/* border: #0056B3; */
+		/* color: #0056B3; */
+		/* #ifndef APP-NVUE */
+		display: flex;
+		flex-direction: column;
+		/* #endif */
+		justify-content: center;
+		align-items: center;
+		background-color: #000000;
+		/* border: 1px solid red; */
+		
+	}
+	.navBuotom {
+		height: 44px;
+		/* #ifndef APP-NVUE */
+		display: flex;
+		position: fixed;
+		bottom: 1px;
+		/* flex-direction: column; */
+		/* #endif */
+		/* left: 0rpx;
+		right: 0rpx; */
+		flex-direction: row;
+		justify-content: space-between;
+		border-top: 0.5px solid #000;
+		background-color: #333333;
+		/* border: 1px solid blue; */
+		/* border-radius:30rpx ; */
+	}
+	.nav-item {
+		width: 170rpx;
+		height: 100rpx;	
+		flex-direction: column;
+		align-items: center;
+		justify-content: flex-start;
+		padding: 20rpx;
+		/* border: 1px solid blue; */
+		/* border-radius:30rpx ; */
+	}
+</style>
